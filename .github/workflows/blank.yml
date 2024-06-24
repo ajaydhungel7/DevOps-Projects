@@ -13,6 +13,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+      id-token: write
+      contents: read
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -22,15 +25,29 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Wait for approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ steps.generate_token.outputs.token }}
+          approvers: myteam
+          minimum-approvals: 1
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::544234170512:role/GithubRole
+          aws-region: us-east-1
+          role-session-name: MySessionName
+          #audience: sts.amazonaws.com
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+  # Runs a single command using the runners shell
+      - name: Copy to S3
+        run: aws s3 cp . s3://destinationbucketai/ --recursive
