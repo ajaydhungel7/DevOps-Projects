@@ -1,0 +1,34 @@
+How to install flask:
+
+1. Create a folder. eg: image_steganography
+2. Navigate to the folder using the terminal.
+3. Run: 
+	-> python -m venv venv.
+   The last 'venv' indicates the folder name. A folder 'venv' is created inside the parent folder.
+4. Activate the venv using:
+	-> .\venv\Scripts\activate
+5. Ensure the interpreter is used from the location: .\venv\Script\python.exe. If not add an interpreter from the bottom-right 
+   corner of the IDE (In pycharm).
+6. Upgrade the pip to the latest version. Use the command: python -m pip install --upgrade pip
+7. Install flask using: 
+	-> python -m pip install flask.
+
+
+To run Flask application:
+	python -m flask --app <name-of-py-file> run
+	Eg: python -m flask --app .\app.py run
+
+Or, follow the below steps:
+	1. include this code in the main py file: app.run(host="0.0.0.0", port=80)
+	2. Inside terminal run: python <name-of-py-file>. Eg: python app.py
+	
+
+
+
+Tips:
+
+-> If you need to include a html file, store it inside /templates/ folder. This is compulsory as Flask searches for templates
+in this folder by default.
+
+-> If you need to display a HTML file, import the render_template package from Flask as follows:
+	from flask import render_template.
