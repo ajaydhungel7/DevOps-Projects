@@ -3,7 +3,7 @@ name: Build, Push Docker Image to ACR, and Deploy to AKS
 on:
   push:
     branches:
-      - dev  # Adjust the branch as needed
+      - main  # Adjust the branch as needed
 
 permissions:
   id-token: write
@@ -18,7 +18,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Login to Azure Container Registry
-        run: az acr login --name DevOpsProjectLambton
+        run: |
+          TOKEN=$(az acr login --name DevOpsProjectLambton --expose-token --output tsv --query accessToken)
+          echo $TOKEN | docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
 
       - name: Get Git Commit ID
         id: git_commit_id
@@ -34,10 +36,6 @@ jobs:
         run: |
           docker tag DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }} DevOpsProjectLambton.azurecr.io/myapp:latest
           docker push DevOpsProjectLambton.azurecr.io/myapp:latest
-
-      - name: Set up kubectl
-        run: |
-          az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
 
       - name: Create namespace if not exists
         run: |
