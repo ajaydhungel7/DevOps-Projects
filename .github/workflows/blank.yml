@@ -1,47 +1,49 @@
-name: Docker Build and Push
+name: Build, Push Docker Image to ACR, and Deploy to AKS
 
 on:
   push:
     branches:
-      - main # Adjust the branch as needed
+      - main  # Adjust the branch as needed
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-deploy:
+    runs-on: self-hosted  # Use your self-hosted runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::544234170512:role/GithubRole
-          aws-region: us-east-1
-          role-session-name: MySessionName
-          #audience: sts.amazonaws.com
-
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to Azure Container Registry
+        run: az acr login --name DevOpsProjectLambton
 
       - name: Get Git Commit ID
         id: git_commit_id
-        run: echo "::set-output name=commit_id::$(git rev-parse --short HEAD)"
+        run: echo "commit_id=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Build, Tag, and Push the Image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: stenography
-          IMAGE_TAG: ${{ steps.git_commit_id.outputs.commit_id  }}
+      - name: Build and push image to ACR
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-          docker tag   $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-         
+          IMAGE_NAME=DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: Tag latest
+        run: |
+          docker tag DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }} DevOpsProjectLambton.azurecr.io/myapp:latest
+          docker push DevOpsProjectLambton.azurecr.io/myapp:latest
+
+      - name: Set up kubectl
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl get namespace dev || kubectl create namespace dev
+
+      - name: Deploy to AKS
+        run: |
+          sed -i 's|{{IMAGE_TAG}}|${{ env.commit_id }}|g' k8s-manifest.yaml
+          kubectl apply -f k8s-manifest.yaml
