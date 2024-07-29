@@ -3,7 +3,7 @@ name: Build, Push Docker Image to ACR, and Deploy to AKS
 on:
   push:
     branches:
-      - main  # Adjust the branch as needed
+      - dev  # Adjust the branch as needed
 
 permissions:
   id-token: write
