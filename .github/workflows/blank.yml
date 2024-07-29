@@ -20,7 +20,7 @@ jobs:
       - name: Login to Azure Container Registry
         run: |
           TOKEN=$(az acr login --name DevOpsProjectLambton --expose-token --output tsv --query accessToken)
-          echo $TOKEN | docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
+          echo $TOKEN | sudo docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
 
       - name: Get Git Commit ID
         id: git_commit_id
@@ -29,13 +29,13 @@ jobs:
       - name: Build and push image to ACR
         run: |
           IMAGE_NAME=DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }}
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          sudo docker build -t $IMAGE_NAME .
+          sudo docker push $IMAGE_NAME
 
       - name: Tag latest
         run: |
-          docker tag DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }} DevOpsProjectLambton.azurecr.io/myapp:latest
-          docker push DevOpsProjectLambton.azurecr.io/myapp:latest
+          sudo docker tag DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }} DevOpsProjectLambton.azurecr.io/myapp:latest
+          sudo docker push DevOpsProjectLambton.azurecr.io/myapp:latest
 
       - name: Create namespace if not exists
         run: |
