@@ -34,6 +34,7 @@ jobs:
 
       - name: Tag latest
         run: |
+          sudo docker login -u github-actions -p JdVMLYOh/Bd1TRE2Lw9O8pac+9Ws8VjuVCra6Mfe3Y+ACRBiS148 devopsprojectlambton.azurecr.io
           sudo docker tag DevOpsProjectLambton.azurecr.io/myapp:${{ env.commit_id }} DevOpsProjectLambton.azurecr.io/myapp:latest
           sudo docker push DevOpsProjectLambton.azurecr.io/myapp:latest
 
