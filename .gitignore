@@ -7,4 +7,7 @@ __pycache__/
 htmlcov/
 docs/_build/
 dist/
+.terraform
+.terraform.lock.htmlcov
+terraform.tfstate.backup
 venv/

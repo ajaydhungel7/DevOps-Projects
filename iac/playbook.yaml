@@ -1,0 +1,135 @@
+---
+- name: Setup GitHub Actions runner and kubectl
+  hosts: all
+  become: yes
+  vars:
+    github_repo_url: "https://github.com/ajaya03/DevOps-Projects"
+    github_runner_token: "BGZ2VCRLGY3MOFBIB45ADA3GVCCT6"
+    azure_subscription: "e8f02450-f902-4480-a459-da106d4175a3"
+    resource_group: "Ajay"
+    aks_cluster_name: "DevOpsproject-cluster"
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install prerequisites for Azure CLI
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - apt-transport-https
+          - lsb-release
+          - gnupg
+        state: present
+
+    - name: Download and install the Microsoft signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Azure CLI repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
+        state: present
+        filename: azure-cli
+
+    - name: Install Azure CLI
+      apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+
+    - name: Install kubectl using snap
+      community.general.snap:
+        name: kubectl
+        classic: yes
+
+    - name: Login to Azure using Managed Identity
+      become_user: azureuser
+      shell: |
+        az login --identity 
+      args:
+        executable: /bin/bash
+      register: az_login_result
+
+    - name: Display Azure login result
+      debug:
+        var: az_login_result
+   
+
+    - name: Get AKS credentials
+      become_user: azureuser
+      shell: az aks get-credentials --resource-group {{ resource_group }} --name {{ aks_cluster_name }} --overwrite-existing --admin
+      args:
+        executable: /bin/bash
+
+    - name: Create actions-runner directory
+      file:
+        path: /home/azureuser/actions-runner
+        state: directory
+        owner: azureuser
+        group: azureuser
+
+    - name: Download GitHub Actions runner
+      get_url:
+        url: https://github.com/actions/runner/releases/download/v2.317.0/actions-runner-linux-x64-2.317.0.tar.gz
+        dest: /home/azureuser/actions-runner/actions-runner-linux-x64-2.317.0.tar.gz
+        owner: azureuser
+        group: azureuser
+
+    - name: Verify GitHub Actions runner checksum
+      become_user: azureuser
+      shell: echo "9e883d210df8c6028aff475475a457d380353f9d01877d51cc01a17b2a91161d  actions-runner-linux-x64-2.317.0.tar.gz" | shasum -a 256 -c
+      args:
+        chdir: /home/azureuser/actions-runner
+
+    - name: Extract GitHub Actions runner
+      become_user: azureuser
+      unarchive:
+        src: /home/azureuser/actions-runner/actions-runner-linux-x64-2.317.0.tar.gz
+        dest: /home/azureuser/actions-runner
+        remote_src: yes
+       
+
+    - name: Configure GitHub Actions runner
+      become_user: azureuser
+      shell: ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --unattended
+      args:  
+        chdir: actions-runner
+        executable: /bin/bash
+
+    - name: Create a script to run the GitHub Actions runner
+      become_user: azureuser
+      copy:
+        dest: /home/azureuser/actions-runner/start_runner.sh
+        content: |
+          #!/bin/bash
+          cd /home/azureuser/actions-runner
+          nohup ./run.sh > runner.log 2>&1 &
+        mode: '0755'
+
+    - name: Run GitHub Actions runner with nohup
+      become_user: azureuser
+      shell: /home/azureuser/actions-runner/start_runner.sh
+      async: 45
+      poll: 0
+
+    - name: Ensure the runner is running
+      become_user: azureuser
+      shell: pgrep -f ./run.sh
+      register: runner_process
+      failed_when: runner_process.rc != 0
+      changed_when: false
