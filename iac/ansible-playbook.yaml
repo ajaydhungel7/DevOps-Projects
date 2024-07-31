@@ -3,11 +3,14 @@
   hosts: all
   become: yes
   vars:
-    github_repo_url: "https://github.com/ajaya03/DevOps-Projects"
-    github_runner_token: "BGZ2VCRLGY3MOFBIB45ADA3GVCCT6"
+    github_repo_url: "https://github.com/ajaydhungel23"
+    github_personal_access_token: "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"
     azure_subscription: "e8f02450-f902-4480-a459-da106d4175a3"
     resource_group: "Ajay"
     aks_cluster_name: "DevOpsproject-cluster"
+    github_org: "ajaydhungel23"
+    api_version: "2022-11-28"
+
   tasks:
     - name: Update and upgrade apt packages
       apt:
@@ -33,6 +36,7 @@
           - apt-transport-https
           - lsb-release
           - gnupg
+          - jq
         state: present
 
     - name: Download and install the Microsoft signing key
@@ -59,8 +63,7 @@
 
     - name: Login to Azure using Managed Identity
       become_user: azureuser
-      shell: |
-        az login --identity 
+      shell: az login --identity
       args:
         executable: /bin/bash
       register: az_login_result
@@ -68,7 +71,6 @@
     - name: Display Azure login result
       debug:
         var: az_login_result
-   
 
     - name: Get AKS credentials
       become_user: azureuser
@@ -95,6 +97,7 @@
       shell: echo "9e883d210df8c6028aff475475a457d380353f9d01877d51cc01a17b2a91161d  actions-runner-linux-x64-2.317.0.tar.gz" | shasum -a 256 -c
       args:
         chdir: /home/azureuser/actions-runner
+        executable: /bin/bash
 
     - name: Extract GitHub Actions runner
       become_user: azureuser
@@ -102,14 +105,53 @@
         src: /home/azureuser/actions-runner/actions-runner-linux-x64-2.317.0.tar.gz
         dest: /home/azureuser/actions-runner
         remote_src: yes
-       
 
-    - name: Configure GitHub Actions runner
+    - name: Obtain GitHub runner remove token and remove runner
       become_user: azureuser
-      shell: ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --unattended
-      args:  
-        chdir: actions-runner
-        executable: /bin/bash
+      block:
+        - name: Get GitHub runner removal token
+          uri:
+            url: "https://api.github.com/orgs/{{ github_org }}/actions/runners/remove-token"
+            method: POST
+            headers:
+              Accept: "application/vnd.github+json"
+              Authorization: "Bearer {{ github_personal_access_token }}"
+              X-GitHub-Api-Version: "{{ api_version }}"
+            status_code: 201
+          register: remove_token_response
+
+        - name: Set remove token fact
+          set_fact:
+            remove_token: "{{ remove_token_response.json.token }}"
+
+        - name: Remove GitHub runner
+          command: ./config.sh remove --token "{{ remove_token }}"
+          args:
+            chdir: /home/azureuser/actions-runner
+      ignore_errors: yes
+
+    - name: Obtain GitHub runner registration token and register runner
+      become_user: azureuser
+      block:
+        - name: Get GitHub runner registration token
+          uri:
+            url: "https://api.github.com/orgs/{{ github_org }}/actions/runners/registration-token"
+            method: POST
+            headers:
+              Accept: "application/vnd.github+json"
+              Authorization: "Bearer {{ github_personal_access_token }}"
+              X-GitHub-Api-Version: "{{ api_version }}"
+            status_code: 201
+          register: registration_response
+
+        - name: Set registration token fact
+          set_fact:
+            registration_token: "{{ registration_response.json.token }}"
+
+        - name: Register GitHub runner
+          command: ./config.sh --url {{ github_repo_url }} --token "{{ registration_token }}" --unattended
+          args:
+            chdir: /home/azureuser/actions-runner
 
     - name: Create a script to run the GitHub Actions runner
       become_user: azureuser

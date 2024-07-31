@@ -53,11 +53,19 @@ resource "azurerm_role_assignment" "vm_identity_role" {
   principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
 }
 
-resource "azurerm_role_assignment" "example_aks_user" {
+resource "azurerm_role_assignment" "aks_user_role" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Azure Kubernetes Service Cluster Admin Role" 
   principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
 }
+
+resource "azurerm_role_assignment" "acr_user_role" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "AcrPull" 
+  principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
+}
+
+
 
 resource "azurerm_linux_virtual_machine" "vm" {
   name                  = "github-runner-vm-second"
@@ -86,10 +94,14 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 resource "null_resource" "run_ansible_playbook" {
- provisioner "local-exec" {
+  provisioner "local-exec" {
     command = <<EOT
-      ansible-playbook -i "${azurerm_public_ip.public_ip.ip_address}," playbook.yaml
+      ansible-playbook -i "${azurerm_public_ip.public_ip.ip_address}," --private-key ~/.ssh/id_rsa -u azureuser ansible-playbook.yaml
     EOT
+  }
+
+  triggers = {
+    public_ip = azurerm_public_ip.public_ip.ip_address
   }
 }
 
