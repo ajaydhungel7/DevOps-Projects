@@ -59,9 +59,15 @@ resource "azurerm_role_assignment" "aks_user_role" {
   principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
 }
 
-resource "azurerm_role_assignment" "acr_user_role" {
+resource "azurerm_role_assignment" "acr_pull_role" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "AcrPull" 
+  principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "acr_push_role" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "AcrPush" 
   principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
 }
 
