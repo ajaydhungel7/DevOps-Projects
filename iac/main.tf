@@ -86,6 +86,12 @@ resource "azurerm_container_registry" "acr" {
   admin_enabled       = false
 }
 
+resource "azurerm_role_assignment" "acr_admin_role" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "Owner"
+  principal_id         = azurerm_user_assigned_identity.vm_identity.principal_id
+}
+
 
 resource "azurerm_linux_virtual_machine" "vm" {
   name                  = "github-runner-vm-second"
