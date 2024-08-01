@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: devopsprojectlambton.azurecr.io/myapp:{{IMAGE_TAG}}
+        image: devopsprojectlambtonregistry.azurecr.io/myapp:{{IMAGE_TAG}}
         ports:
         - containerPort: 80
         resources:

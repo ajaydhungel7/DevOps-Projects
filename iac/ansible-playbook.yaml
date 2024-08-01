@@ -6,8 +6,8 @@
     github_repo_url: "https://github.com/ajaydhungel23"
     github_personal_access_token: "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"
     azure_subscription: "e8f02450-f902-4480-a459-da106d4175a3"
-    resource_group: "Ajay"
-    aks_cluster_name: "DevOpsproject-cluster"
+    resource_group: "DevOpsProject-rg"
+    aks_cluster_name: "DevOpsproject-cluster1"
     github_org: "ajaydhungel23"
     api_version: "2022-11-28"
 

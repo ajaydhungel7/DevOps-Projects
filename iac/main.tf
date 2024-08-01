@@ -21,6 +21,13 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
+resource "azurerm_subnet" "aks_subnet" {
+  name                 = "aks-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_public_ip" "public_ip" {
   name                = "publicIP"
   location            = azurerm_resource_group.rg.location
@@ -107,6 +114,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 resource "null_resource" "run_ansible_playbook" {
+  
   provisioner "local-exec" {
     command = <<EOT
       ansible-playbook -i "${azurerm_public_ip.public_ip.ip_address}," --private-key ~/.ssh/id_rsa -u azureuser ansible-playbook.yaml
@@ -115,6 +123,7 @@ resource "null_resource" "run_ansible_playbook" {
 
   triggers = {
     public_ip = azurerm_public_ip.public_ip.ip_address
+    playbook_hash = filemd5("ansible-playbook.yaml")
   }
 }
 

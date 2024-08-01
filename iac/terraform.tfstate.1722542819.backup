@@ -1,7 +1,7 @@
 {
   "version": 4,
   "terraform_version": "1.5.7",
-  "serial": 234,
+  "serial": 225,
   "lineage": "2b9d7604-694b-96e3-6bab-35f80f9af50e",
   "outputs": {
     "aks_cluster_endpoint": {
@@ -847,6 +847,54 @@
     {
       "mode": "managed",
       "type": "azurerm_virtual_network",
+      "name": "devopsprojectvnet",
+      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "address_space": [
+              "10.0.0.0/16"
+            ],
+            "bgp_community": "",
+            "ddos_protection_plan": [],
+            "dns_servers": [],
+            "edge_zone": "",
+            "encryption": [],
+            "flow_timeout_in_minutes": 0,
+            "guid": "75ed627d-f628-4cc9-8f3e-3c56b55aac1c",
+            "id": "/subscriptions/e8f02450-f902-4480-a459-da106d4175a3/resourceGroups/DevOpsProject-rg/providers/Microsoft.Network/virtualNetworks/vnet",
+            "location": "canadacentral",
+            "name": "vnet",
+            "resource_group_name": "DevOpsProject-rg",
+            "subnet": [
+              {
+                "address_prefix": "10.0.1.0/24",
+                "id": "/subscriptions/e8f02450-f902-4480-a459-da106d4175a3/resourceGroups/DevOpsProject-rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet",
+                "name": "subnet",
+                "security_group": ""
+              },
+              {
+                "address_prefix": "10.0.2.0/24",
+                "id": "/subscriptions/e8f02450-f902-4480-a459-da106d4175a3/resourceGroups/DevOpsProject-rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/aks-subnet",
+                "name": "aks-subnet",
+                "security_group": ""
+              }
+            ],
+            "tags": {},
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjoxODAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIwIn0=",
+          "dependencies": [
+            "azurerm_resource_group.rg"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "azurerm_virtual_network",
       "name": "vnet",
       "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
       "instances": [
@@ -901,15 +949,15 @@
         {
           "schema_version": 0,
           "attributes": {
-            "id": "5257117119423022276",
+            "id": "7166043968958129761",
             "triggers": {
-              "playbook_hash": "269761aa1a0045810af2320f11536d1d",
               "public_ip": "4.206.119.104"
             }
           },
           "sensitive_attributes": [],
           "dependencies": [
-            "azurerm_public_ip.public_ip"
+            "azurerm_public_ip.public_ip",
+            "azurerm_resource_group.rg"
           ]
         }
       ]
