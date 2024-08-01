@@ -18,7 +18,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: azure login
-        run: az login --identity
+        run: |
+          CLIENT_ID=$(az identity show --name VM-identity --resource-group DevOpsProject-rg --query clientId -o tsv)
+          az login --identity --username $CLIENT_ID
 
       - name: Login to Azure Container Registry
         run: |
