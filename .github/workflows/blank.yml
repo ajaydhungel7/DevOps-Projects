@@ -22,10 +22,13 @@ jobs:
           CLIENT_ID=$(az identity show --name VM-identity --resource-group DevOpsProject-rg --query clientId -o tsv)
           az login --identity --username $CLIENT_ID
 
-      - name: Login to Azure Container Registry
-        run: |
-          TOKEN=$(az acr login --name DevOpsProjectLambton --expose-token --output tsv --query accessToken)
-          echo $TOKEN | sudo docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
+#- name: Login to Azure Container Registry
+ #       run: |
+  #        TOKEN=$(az acr login --name DevOpsProjectLambton --expose-token --output tsv --query accessToken)
+   #       echo $TOKEN | sudo docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
+
+      - name: Login to ACR
+        run: sudo az acr login -n DevOpsProjectLambton
 
       - name: Get Git Commit ID
         id: git_commit_id
