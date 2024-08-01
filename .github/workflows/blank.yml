@@ -40,12 +40,6 @@ jobs:
           sudo docker build -t $IMAGE_NAME .
           sudo docker push $IMAGE_NAME
 
-      - name: Tag latest
-        run: |
-          sudo docker login -u github-actions -p JdVMLYOh/Bd1TRE2Lw9O8pac+9Ws8VjuVCra6Mfe3Y+ACRBiS148 devopsprojectlambtonregistry.azurecr.io
-          sudo docker tag devopsprojectlambtonregistry.azurecr.io/myapp:${{ env.commit_id }} devopsprojectlambtonregistry.azurecr.io/myapp:latest
-          sudo docker push devopsprojectlambtonregistry.azurecr.io/myapp:latest
-
       - name: Create namespace if not exists
         run: |
           kubectl get namespace dev || kubectl create namespace dev
