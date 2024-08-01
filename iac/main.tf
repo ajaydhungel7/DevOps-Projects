@@ -122,6 +122,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   }
 }
 resource "null_resource" "run_ansible_playbook" {
+
+  depends_on = [ azurerm_container_registry.acr,azurerm_kubernetes_cluster.aks,azurerm_linux_virtual_machine.vm ]
   
   provisioner "local-exec" {
     command = <<EOT
