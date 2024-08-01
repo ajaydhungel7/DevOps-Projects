@@ -17,6 +17,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: azure login
+        run: az login -identity
+
       - name: Login to Azure Container Registry
         run: |
           TOKEN=$(az acr login --name DevOpsProjectLambton --expose-token --output tsv --query accessToken)
