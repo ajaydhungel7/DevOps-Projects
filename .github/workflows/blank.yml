@@ -47,7 +47,7 @@ jobs:
       - name: Deploy to AKS
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ env.commit_id }}|g' k8s-manifest.yaml
-          kubectl apply -f k8s-manifest.yaml
+          kubectl apply -f k8s-manifest.yaml -n dev
           
       - name: Wait for LoadBalancer to be assigned
         run: |
