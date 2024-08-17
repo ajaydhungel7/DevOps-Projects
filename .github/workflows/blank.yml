@@ -3,7 +3,9 @@ name: Build, Push Docker Image to ACR, and Deploy to AKS
 on:
   push:
     branches:
-      - dev  # Adjust the branch as needed
+      - dev
+      - qa 
+      - prod # Adjust the branch as needed
 
 permissions:
   id-token: write
@@ -16,6 +18,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set environment variables
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "NAMESPACE=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF#refs/heads/}" == "main" ]]; then
+            echo "NAMESPACE=prod" >> $GITHUB_ENV
+          fi
 
       - name: azure login
         run: |
@@ -36,16 +46,23 @@ jobs:
 
       - name: Build and push image to ACR
         run: |
-          IMAGE_NAME=devopsprojectlambtonregistry.azurecr.io/myapp:${{ env.commit_id }}
-          sudo docker build -t $IMAGE_NAME .
-          sudo docker push $IMAGE_NAME
+          COMMIT_TAG=devopsprojectlambtonregistry.azurecr.io/myapp:${{ env.commit_id }}
+          LATEST_TAG=devopsprojectlambtonregistry.azurecr.io/myapp:latest
+          
+          # Build the image
+          sudo docker build -t $COMMIT_TAG -t $LATEST_TAG .
+          
+          # Push both tags
+          sudo docker push $COMMIT_TAG
+          sudo docker push $LATEST_TAG
+          
       - name: Create namespace if not exists
         run: |
-          kubectl get namespace dev || kubectl create namespace dev
+            kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
       - name: Deploy to AKS
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ env.commit_id }}|g' k8s-manifest.yaml
-          kubectl apply -f k8s-manifest.yaml
+          kubectl apply -f k8s-manifest.yaml -n ${{ env.NAMESPACE }}
           
       - name: Wait for LoadBalancer to be assigned
         run: |
@@ -64,6 +81,26 @@ jobs:
             LOAD_BALANCER_IP=$(kubectl get svc $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             echo "LoadBalancer URL: http://$LOAD_BALANCER_IP"
             echo "LOAD_BALANCER_URL=http://$LOAD_BALANCER_IP" >> $GITHUB_ENV
-  
-      - name: Output LoadBalancer URL
-        run: echo "The LoadBalancer URL is ${{ env.LOAD_BALANCER_URL }}"    
+         
+      - name: Send custom JSON data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+      # For posting a rich message using Block Kit
+          payload: |
+              {
+                    "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+                    "blocks": [
+                      {
+                        "type": "section",
+                        "text": {
+                          "type": "mrkdwn",
+                          "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                              }
+                            }
+                          ]
+                          }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
