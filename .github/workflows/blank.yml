@@ -3,7 +3,9 @@ name: Build, Push Docker Image to ACR, and Deploy to AKS
 on:
   push:
     branches:
-      - dev  # Adjust the branch as needed
+      - dev 
+      - prod
+      - qa# Adjust the branch as needed
 
 permissions:
   id-token: write
@@ -16,6 +18,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set environment variables
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "NAMESPACE=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF#refs/heads/}" == "main" ]]; then
+            echo "NAMESPACE=prod" >> $GITHUB_ENV
+          fi
 
       - name: azure login
         run: |
@@ -42,12 +52,12 @@ jobs:
 
       - name: Create namespace if not exists
         run: |
-          kubectl get namespace dev || kubectl create namespace dev
+          kubectl get namespace ${{ env.NAMESPACE }} || kubectl create namespace ${{ env.NAMESPACE }}
 
       - name: Deploy to AKS
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ env.commit_id }}|g' k8s-manifest.yaml
-          kubectl apply -f k8s-manifest.yaml -n dev
+          kubectl apply -f k8s-manifest.yaml -n ${{ env.NAMESPACE }}
           
       - name: Wait for LoadBalancer to be assigned
         run: |
