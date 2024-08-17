@@ -25,7 +25,7 @@ jobs:
       - name: Login to Azure Container Registry
         run: |
           TOKEN=$(az acr login --name devopsprojectlambtonregistry --expose-token --output tsv --query accessToken)
-          echo $TOKEN | sudo docker login DevOpsProjectLambton.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
+          echo $TOKEN | sudo docker login DevOpsProjectLambtonregistry.azurecr.io -u 00000000-0000-0000-0000-000000000000 --password-stdin
 
     #  - name: Login to ACR
     #    run: sudo az acr login -n devopsprojectlambtonregistry
