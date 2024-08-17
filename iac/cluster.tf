@@ -68,14 +68,4 @@ output "aks_cluster_name" {
   value = azurerm_kubernetes_cluster.aks.name
 }
 
-# Output the AKS cluster endpoint
-output "aks_cluster_endpoint" {
-  value = azurerm_kubernetes_cluster.aks.kube_config.0.host
-  sensitive = true
-}
-
-# Output the kube config
-output "kube_config" {
-  value     = azurerm_kubernetes_cluster.aks.kube_config_raw
-  sensitive = true
-}
+#
