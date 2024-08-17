@@ -19,6 +19,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+         args: >
+          -Dsonar.projectKey=your_project_key
+          -Dsonar.sources=.
+          -Dsonar.exclusions=**/*test*/**
+          -Dsonar.security.sources.javasecurity.S2068=true
+          -Dsonar.security.sources.javasecurity.S6291=true
+          -Dsonar.security.sources.javasecurity.S6292=true
+
       - name: Set environment variables
         run: |
           echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
