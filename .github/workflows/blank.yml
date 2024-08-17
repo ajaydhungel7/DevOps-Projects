@@ -6,6 +6,7 @@ on:
       - dev 
       - prod
       - qa 
+      -staging
 
 permissions:
   id-token: write
