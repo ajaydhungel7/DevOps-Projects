@@ -67,7 +67,7 @@ jobs:
       - name: Wait for LoadBalancer to be assigned
         run: |
             SERVICE_NAME=myapp-service
-            NAMESPACE=dev
+            NAMESPACE=${{ env.NAMESPACE }}
             echo "Waiting for LoadBalancer IP..."
             while [[ $(kubectl get svc $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}') == "" ]]; do
               sleep 10
@@ -104,4 +104,3 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-

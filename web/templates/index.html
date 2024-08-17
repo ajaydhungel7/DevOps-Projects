@@ -3,26 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CI/CD and Infrastructure Presentation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <title>Canadian Holiday Countdown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #d3212f;
+            text-align: center;
+        }
+        .countdown {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .countdown h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .countdown p {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d3212f;
+        }
+    </style>
 </head>
 <body>
-    <div class="presentation">
-        <div class="slide">
-            <h1>Welcome to My CI/CD and Infrastructure Setup Presentation</h1>
-            <p>Presented by: Ajay Dhungel</p>
-        </div>
-        <div class="slide">
-            <h2>Slide 1: Introduction</h2>
-            <p>Details about the CI/CD pipeline and tools used.</p>
-        </div>
-        <div class="slide">
-            <h2>Slide 2: Infrastructure Overview</h2>
-            <p>Details about the infrastructure setup, including AKS and ACR.</p>
-        </div>
-        <!-- Add more slides as needed -->
-    </div>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <h1>Canadian Holiday Countdown</h1>
+    <div id="countdowns"></div>
+
+    <script>
+        const holidays = [
+            { name: "Canada Day", date: "2025-07-01" },
+            { name: "Christmas", date: "2024-12-25" },
+            { name: "Halloween", date: "2024-10-31" },
+            { name: "New Year's Day", date: "2025-01-01" },
+            { name: "Thanksgiving", date: "2024-10-14" },
+            { name: "Victoria Day", date: "2025-05-19" }
+        ];
+
+        function updateCountdowns() {
+            const now = new Date();
+            let countdownsHTML = '';
+
+            holidays.forEach(holiday => {
+                const holidayDate = new Date(holiday.date);
+                const timeLeft = holidayDate - now;
+                const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+
+                countdownsHTML += `
+                    <div class="countdown">
+                        <h2>${holiday.name}</h2>
+                        <p>${daysLeft} days left</p>
+                    </div>
+                `;
+            });
+
+            document.getElementById('countdowns').innerHTML = countdownsHTML;
+        }
+
+        updateCountdowns();
+        setInterval(updateCountdowns, 86400000); // Update every 24 hours
+    </script>
 </body>
 </html>
