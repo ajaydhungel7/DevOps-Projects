@@ -72,13 +72,14 @@ jobs:
         id: get_loadbalancer_url
         run: |
             SERVICE_NAME=myapp-service
-            NAMESPACE=dev
+            NAMESPACE= ${{ env.NAMESPACE }}
             LOAD_BALANCER_IP=$(kubectl get svc $SERVICE_NAME -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             echo "LoadBalancer URL: http://$LOAD_BALANCER_IP"
             echo "LOAD_BALANCER_URL=http://$LOAD_BALANCER_IP" >> $GITHUB_ENV
   
       - name: Output LoadBalancer URL
         run: echo "The LoadBalancer URL is ${{ env.LOAD_BALANCER_URL }}"    
+
 
       - name: Send custom JSON data to Slack workflow
         id: slack
