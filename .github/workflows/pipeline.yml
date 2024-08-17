@@ -63,6 +63,46 @@ jobs:
         run: |
           sed -i 's|{{IMAGE_TAG}}|${{ env.commit_id }}|g' k8s-manifest.yaml
           kubectl apply -f k8s-manifest.yaml -n ${{ env.NAMESPACE }}
+
+
+    
+     - name: Set up Python
+       uses: actions/setup-python@v4
+       with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install selenium webdriver_manager
+    
+    - name: Set up Chrome
+      uses: browser-actions/setup-chrome@latest
+    
+    - name: Run Selenium test
+      run: |
+        python - <<EOF
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service as ChromeService
+        from webdriver_manager.chrome import ChromeDriverManager
+        from selenium.webdriver.chrome.options import Options
+
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
+
+        try:
+            driver.get("http://4.174.179.171")
+            print("Page opened successfully")
+        except Exception as e:
+            print(f"Error opening page: {e}")
+            exit(1)
+        finally:
+            driver.quit()
+        EOF
           
      
       - name: Send custom JSON data to Slack workflow
