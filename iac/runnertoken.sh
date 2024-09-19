@@ -5,7 +5,7 @@ set -x
 
 # Variables
 github_org="ajaydhungel23"
-github_personal_access_token="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"
+github_personal_access_token="<PAT>"
 
 # URL for obtaining the GitHub Runner Registration Token
 registration_url="https://api.github.com/orgs/${github_org}/actions/runners/registration-token"
